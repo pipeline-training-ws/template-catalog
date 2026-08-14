@@ -34,6 +34,7 @@ def pod = libraryResource 'podtemplates/agent.yaml'
 pipeline {
     agent {
         kubernetes {
+            defaultContainer 'maven'
             yaml pod
         }
     }
@@ -49,7 +50,7 @@ pipeline {
         stage('Stage2') {
             // we can also declare a specific container
             steps {
-                container("custom-agent"){
+                container("maven"){
                     sh 'hostname'
                     helloWorld "${firstname}"
                     helloWorld "${lastname}"
