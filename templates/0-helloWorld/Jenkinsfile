@@ -28,9 +28,9 @@ pipeline {
             }
         }
         stage('Stage2') {
-             // we can also declare a specific container 
-            container("custom-agent"){
-                steps {
+            // we can also declare a specific container
+            steps {
+                container("custom-agent"){
                     sh 'hostname'
                     helloWorld "${firstname}"
                     helloWorld "${lastname}"
