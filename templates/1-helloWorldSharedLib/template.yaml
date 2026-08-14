@@ -1,7 +1,7 @@
 type: pipeline-template
 version: 1
-name: Template 0 Hello World Simple
-description: Template 0 Hello World Simple
+name: Template 1 Hello World Shared Lib
+description: Template 1 Hello World Shared Lib
 parameters:
   - name: firstname
     displayName: your firstname
