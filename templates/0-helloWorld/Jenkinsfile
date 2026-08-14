@@ -1,14 +1,34 @@
 /**
-This Pipeline shows how steps are externalized to the SharedLibrary
-env.SHARED_LIB_TAG should be injected from (Folder) environment properties
+Here we see how the entire pipeline gets externalized as a template to a Shared Library
+env.SHARED_ vars should be injected from (Folder) environment properties
 Alternative, the Shared Library can be coconfigured either on folder level or Controller level
 **/
-env.SHARED_LIB_TAG=env.SHARED_LIB_TAG ?:"main"
-library identifier: "ci-shared-library@${env.SHARED_LIB_TAG}", retriever: modernSCM(
-        [$class: 'GitSCMSource',
-         remote: 'https://github.com/cb-ci-templates/ci-shared-library.git'])
 
-def pod = libraryResource 'podtemplates/podTemplate-agent.yaml'
+env.SHAREDLIB_GIT_SERVER = env.SHAREDLIB_GIT_SERVER ?: "https://github.com"
+env.SHAREDLIB_GIT_ORG = env.SHAREDLIB_GIT_ORG ?: "pipeline-training-ws"
+env.SHAREDLIB_GIT_REPO = env.SHAREDLIB_GIT_REPO ?: "shared-library"
+env.SHAREDLIB_GIT_TAG_DEFAULT = env.SHAREDLIB_GIT_TAG_DEFAULT ?: "main" //"dev"
+env.SHAREDLIB_GIT_CREDENTIALS = env.SHAREDLIB_GIT_CREDENTIALS ?: "gh-pat" //  for MB Pipeline this should  be  an github-app rather than a pat token
+
+// Set the env.SHAREDLIB_GIT_TAG_ depending on whether env.SHAREDLIB_GIT_TAG is set or not on job/folder level.
+// If not set, use default env.SHAREDLIB_GIT_TAG_DEFAULT
+if (!env.SHAREDLIB_GIT_TAG) {
+        echo "SHAREDLIB_GIT_TAG not set, loading shared lib default tag/branch ${env.SHAREDLIB_GIT_TAG_DEFAULT}"
+        env.SHAREDLIB_GIT_TAG_ = env.SHAREDLIB_GIT_TAG_DEFAULT
+} else {
+        echo "Env var \$SHAREDLIB_GIT_TAG set on job/folder level, loading shared lib tag/branch ${env.SHAREDLIB_GIT_TAG}"
+        env.SHAREDLIB_GIT_TAG_ = env.SHAREDLIB_GIT_TAG
+}
+
+library identifier: "${env.SHAREDLIB_GIT_REPO}@${env.SHAREDLIB_GIT_TAG_}", retriever: modernSCM(
+        [$class: 'GitSCMSource',
+         remote: "${env.SHAREDLIB_GIT_SERVER}/${env.SHAREDLIB_GIT_ORG}/${env.SHAREDLIB_GIT_REPO}.git",
+         credentialsId: "${env.SHAREDLIB_GIT_CREDENTIALS}"
+        ]
+)
+
+
+def pod = libraryResource 'podtemplates/agent.yaml'
 
 // Uses Declarative syntax to run commands inside a container.
 pipeline {
