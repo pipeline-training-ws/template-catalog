@@ -1,0 +1,4 @@
+
+/.gradle/
+/casc/set-env.sh
+/casc/cbci-secrets.yaml

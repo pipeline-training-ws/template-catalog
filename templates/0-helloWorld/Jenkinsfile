@@ -1,0 +1,41 @@
+/**
+This Pipeline shows how steps are externalized to the SharedLibrary
+env.SHARED_LIB_TAG should be injected from (Folder) environment properties
+Alternative, the Shared Library can be coconfigured either on folder level or Controller level
+**/
+env.SHARED_LIB_TAG=env.SHARED_LIB_TAG ?:"main"
+library identifier: "ci-shared-library@${env.SHARED_LIB_TAG}", retriever: modernSCM(
+        [$class: 'GitSCMSource',
+         remote: 'https://github.com/cb-ci-templates/ci-shared-library.git'])
+
+def pod = libraryResource 'podtemplates/podTemplate-agent.yaml'
+
+// Uses Declarative syntax to run commands inside a container.
+pipeline {
+    agent {
+        kubernetes {
+            defaultContainer "custom-agent"
+            yaml pod
+        }
+    }
+    stages {
+        stage('Stage1') {
+            // runs in the default container
+            steps {
+                sh 'hostname'
+                helloWorld "${firstname}"
+                helloWorld "${lastname}"
+            }
+        }
+        stage('Stage2') {
+             // we can also declare a specific container 
+            container("custom-agent"){
+                steps {
+                    sh 'hostname'
+                    helloWorld "${firstname}"
+                    helloWorld "${lastname}"
+                }
+            }
+        }
+    }
+}
