@@ -34,7 +34,6 @@ def pod = libraryResource 'podtemplates/agent.yaml'
 pipeline {
     agent {
         kubernetes {
-            defaultContainer "custom-agent"
             yaml pod
         }
     }
