@@ -9,33 +9,45 @@ This repository contains **CloudBees CI Pipeline Templates**, intended for reuse
 
 ### ✨ Purpose
 
-- Provide an opinionated CI pipeline structure with clearly defined stages and phases (see example diagram below)
-- Simplify pipeline adoption with minimal external dependencies
-- Enable real-world usage through a sample [Spring Boot app](https://github.com/cb-ci-templates/sample-app-spring-boot-maven), which includes:
-  - A simple [`ci-config.yaml`](https://github.com/cb-ci-templates/sample-app-spring-boot-maven/blob/main/ci-config.yaml) used as a custom marker and configuration file
-  - A connection to [this template](https://github.com/cb-ci-templates/ci-templates/blob/main/templates/3-multiBranch/Jenkinsfile) for CI execution (e.g., clone, build, push)
+- Provide an opinionated CI pipeline structure driven by reusable templates and marker files (see diagram below)
+- Simplify pipeline adoption with minimal external dependencies — a Jenkins Shared Library plus a Pipeline Template Catalog
+- Keep templates thin: the Jenkinsfile in each template mostly loads a Shared Library and delegates the actual pipeline logic to it
 * Governance focus: *Centralized governance and lifecycle control for pipelines and Jenkinsfile templates*
 * Developer-friendly: *Shared, centrally managed pipeline templates for consistent Jenkinsfile design*
 * Ops/Enterprise: *Enterprise-wide standardization and centralized control of pipeline definitions and templates*
 
-![CI Pipeline](images/CI-Pipeline-1.png)
+> For a fuller real-world example (Spring Boot app + custom marker file + Docker build), see the external reference implementation at [cb-ci-templates/ci-templates](https://github.com/cb-ci-templates/ci-templates) — it is not part of this repository.
+
+### Pipeline Template Catalog Design
+
+```mermaid
+flowchart LR
+    A["App / Job Repo\nmarker file (ci-config.yaml)"] --> B["Jenkins Job\n(MultiBranch / Org Folder)"]
+    B --> C["Pipeline Template Catalog\n(catalog.yaml)"]
+    C --> D["Pipeline Template\n(template.yaml + Jenkinsfile)"]
+    D --> E["Shared Library\n(global pipeline steps)"]
+    E --> F["Kubernetes Agent\n(pod template / containers)"]
+    F --> G["Pipeline Stages\n(e.g. helloWorld steps)"]
+```
 
 ---
 
 ## 📦 Templates in This Repository
 
-| Template                                             | Description                                                                                                                                                                                                                  |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`0-helloWorldSimple`](templates/0-helloWorldSimple) | Pipeline template that utilizes a shared library and runs on a Kubernetes agent. The pipeline executes a series of custom`helloworld`  steps inside a custom container.                                                      |
-| [`1-multiBranch`](templates/1-multiBranch)           | Hello World using Multibranch                                                                                                                                                                                                |
-| [`2-multiBranch`](templates/2-multiBranch)           | Extension of`1-multiBranch` uses Pipeline instance parameters.                                                                                                                                                               |
-| [`3-multiBranch`](templates/3-multiBranch)           | Full Spring Boot pipeline with:<br>• custom marker config.yaml <br>• Maven build <br>• Docker image build & push via Kaniko. scan on [`sample-app-helloworld`](https://github.com/cb-ci-templates/sample-app-helloworld). |
+| Template                                                     | Description                                                                                                                                                                                          |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`0-helloWorld`](templates/0-helloWorld)                     | Loads a Shared Library and runs on a Kubernetes agent. Executes custom `helloWorld` steps across two explicit stages (`Stage1`, `Stage2`) inside the `maven` container.                              |
+| [`1-helloWorld-MultiBranch`](templates/1-helloWorld-MultiBranch) | Fully externalized pipeline: the Jenkinsfile only loads the Shared Library and delegates to the `pipelineTemplateHelloWorld('ci-config.yaml')` global step, intended for MultiBranch / marker-file use. |
+
+Both templates declare the same `firstname` and `lastname` parameters in their `template.yaml`.
 
 ---
 
 ## ⚡ Quick Start
 
-To get started quickly, see the [casc directory](casc/) for setup and configuration examples.
+1. Register this repository as a [Pipeline Template Catalog](https://docs.cloudbees.com/docs/cloudbees-ci/latest/pipeline-templates-user-guide/) in CloudBees CI, pointing at [`catalog.yaml`](catalog.yaml).
+2. Reference a template (e.g. `0-helloWorld` or `1-helloWorld-MultiBranch`) from a MultiBranch Pipeline, Organization Folder, or marker file.
+3. Supply the required template parameters (`firstname`, `lastname`) when the template is instantiated.
 
 ---
 
@@ -48,31 +60,31 @@ This repository follows the recommended layout for Pipeline Template Catalogs. T
 
 ```text
 ├── README.md
-├── catalog.yaml              # Pipeline Template Catalog descriptor
-└── templates/                # Template catalog
-    ├── helloWorldSimple/
-    │   ├── Jenkinsfile       # Main pipeline file
+├── catalog.yaml                    # Pipeline Template Catalog descriptor
+└── templates/
+    ├── 0-helloWorld/
+    │   ├── Jenkinsfile              # Main pipeline file
     │   ├── README.md
-    │   └── template.yaml     # Template descriptor (optional)
-    └── ...
+    │   └── template.yaml            # Template descriptor (parameters)
+    └── 1-helloWorld-MultiBranch/
+        ├── Jenkinsfile
+        ├── README.md
+        └── template.yaml
 ```
-
----
-
-## 🧱 Component Diagram
-
-![CI Component Diagram](images/CI-Component-diagram.png)
-
-_TODO: Add description and technical design._
 
 ---
 
 ## 🧩 Custom Marker Files & Pipeline Templates
 
-This diagram shows the linkage of marker files and templates:
-(Many Jobs maps to only one Template!)
+Many jobs (or repos) can reuse the same template — a marker file in each job/repo simply points to the template it wants:
 
-![Custom Marker Diagram](images/CI-Diagramms-CustomMarkerFiles.svg)
+```mermaid
+graph LR
+    JobA["Job / Repo A\nci-config.yaml"] --> TPL["Pipeline Template\n1-helloWorld-MultiBranch"]
+    JobB["Job / Repo B\nci-config.yaml"] --> TPL
+    JobC["Job / Repo C\nci-config.yaml"] --> TPL
+    TPL --> SL["Shared Library"]
+```
 
 ---
 
