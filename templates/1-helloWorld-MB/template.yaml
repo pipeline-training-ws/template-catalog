@@ -1,7 +1,7 @@
 type: pipeline-template
 version: 1
-name: Template 1 Hello World Multibranch
-description: Template 1 Hello World Multibranch
+name: Template 1 Hello World MB
+description: Template 1 Hello World MB
 templateType: MULTIBRANCH
 parameters:
   - name: repoName
