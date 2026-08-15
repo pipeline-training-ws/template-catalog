@@ -1,99 +1,69 @@
 ## Overview
 
-This directory contains a Jenkins pipeline template that utilizes a shared library and runs on a Kubernetes agent. 
-The pipeline executes a series of custom `helloworld`  steps inside a custom container.
+This directory contains a Jenkins pipeline template intended for **MultiBranch Pipeline Projects** (or Organization Folders). Unlike [`0-helloWorld`](../0-helloWorld), the entire pipeline — agent, stages, and steps — is externalized into the Shared Library. This `Jenkinsfile` only resolves and loads the library, then delegates to a single global pipeline step.
 
 ## Prerequisites
 
 Before running this pipeline, ensure you have the following:
 
-- Jenkins with Kubernetes plugin installed
-- A Kubernetes cluster configured as an agent for Jenkins
+- A Jenkins MultiBranch Pipeline Project (or Organization Folder) with a marker file (`ci-config.yaml`) in each branch/repo
 - The following Jenkins plugins installed:
-    - **Pipeline: Shared Groovy Libraries**
-    - **Kubernetes Plugin**
-    - **Git Plugin**
+  - **Pipeline: Shared Groovy Libraries**
+  - **Git Plugin**
+  - **Kubernetes Plugin** (the agent/pod definition lives inside the Shared Library, not in this Jenkinsfile)
 
-## Setting Up the Shared Library
+## Loading the Shared Library
 
-This pipeline uses a shared library stored in a Git repository. The library is dynamically loaded using an environment variable `SHARED_LIB_TAG`, which should be set in Jenkins Folder environment properties.
-
-Example configuration:
+Instead of a fixed `library` declaration, this Jenkinsfile resolves the Shared Library coordinates from environment variables (with defaults), so they can be overridden at the folder or controller level without touching the Jenkinsfile:
 
 ```groovy
-// Ensure the shared library tag is injected via Jenkins Folder properties
-env.SHARED_LIB_TAG="main"
-
-// Load the shared library
-library identifier: "ci-shared-library@${env.SHARED_LIB_TAG}", retriever: modernSCM(
-        [$class: 'GitSCMSource',
-         remote: 'https://github.com/cb-ci-templates/ci-shared-library.git'])
+env.SHAREDLIB_GIT_SERVER = env.SHAREDLIB_GIT_SERVER ?: "https://github.com"
+env.SHAREDLIB_GIT_ORG = env.SHAREDLIB_GIT_ORG ?: "pipeline-training-ws"
+env.SHAREDLIB_GIT_REPO = env.SHAREDLIB_GIT_REPO ?: "shared-library"
+env.SHAREDLIB_GIT_TAG_DEFAULT = env.SHAREDLIB_GIT_TAG_DEFAULT ?: "main"
+env.SHAREDLIB_GIT_CREDENTIALS = env.SHAREDLIB_GIT_CREDENTIALS ?: "gh-pat"
 ```
 
-## Agent Configuration
+| Variable                    | Default                  | Purpose                                                        |
+| ---------------------------- | ------------------------- | --------------------------------------------------------------- |
+| `SHAREDLIB_GIT_SERVER`       | `https://github.com`      | Git server hosting the Shared Library                          |
+| `SHAREDLIB_GIT_ORG`          | `pipeline-training-ws`    | Organization/user owning the Shared Library repo                |
+| `SHAREDLIB_GIT_REPO`         | `shared-library`          | Shared Library repository name                                  |
+| `SHAREDLIB_GIT_TAG_DEFAULT`  | `main`                    | Branch/tag loaded when `SHAREDLIB_GIT_TAG` isn't set             |
+| `SHAREDLIB_GIT_CREDENTIALS`  | `gh-pat`                  | Credentials ID used to fetch the library                        |
 
-This pipeline runs on a Kubernetes agent using a custom pod template. The YAML configuration for the pod template is stored as a resource in the shared library (`podtemplates/podTemplate-curl.yaml`).
+If a job or folder sets `SHAREDLIB_GIT_TAG`, that value wins over `SHAREDLIB_GIT_TAG_DEFAULT` — this lets a single branch pin to a specific Shared Library tag (e.g. `dev`) without changing the default used by everyone else.
 
-Agent assignment in the pipeline:
+> ⚠️ For MultiBranch Pipelines, prefer a **GitHub App** over a PAT for `SHAREDLIB_GIT_CREDENTIALS` — a PAT (`gh-pat`) is tied to a single user account.
+
+## Pipeline Delegation
+
+Once the library is loaded, the entire pipeline is delegated to a single global step:
 
 ```groovy
-pipeline {
-    agent {
-        kubernetes {
-            defaultContainer "custom-agent"
-            yaml pod
-        }
-    }
+pipelineTemplateHelloWorld('ci-config.yaml')
 ```
 
-- The `defaultContainer` is set to `custom-agent`.
-- The `yaml` variable loads the pod template YAML from the shared library.
+- `'ci-config.yaml'` is the marker file expected in each branch/repo; the Shared Library reads it to configure the run.
+- The agent and stage definitions live inside the Shared Library (`pipelineTemplateHelloWorld`), not in this Jenkinsfile — consult the Shared Library's own documentation for what it executes.
 
-## Pipeline Stages
+## Template Parameters
 
-The pipeline consists of the following stages:
+Declared in [`template.yaml`](template.yaml):
 
-### **1. Hello Stage**
-
-- Prints the hostname of the agent.
-- Calls a `helloWorld` function with `firstname` and `lastname`.
-- `firstname` and `lastname` are desclared in `template.yaml`
-
-### **2. Hello2 Stage**
-
-- Repeats the steps in the Hello stage.
-
-Example stage execution:
-
-```groovy
-stage('Hello') {
-    steps {
-        sh 'hostname'
-        helloWorld "${firstname}"
-        helloWorld "${lastname}"
-    }
-}
-```
+| Parameter   | Display name    |
+| ----------- | --------------- |
+| `firstname` | your firstname  |
+| `lastname`  | your lastname   |
 
 ## Running the Pipeline
 
-To execute this pipeline:
-
-1. Ensure Jenkins is configured with access to the Kubernetes cluster.
-2. Set the `SHARED_LIB_TAG` environment variable in the Jenkins Folder properties.
-3. Run the pipeline from Jenkins UI or via a Jenkinsfile.
+1. Register this template in a Pipeline Template Catalog (see the [top-level README](../../README.md)).
+2. Reference the template from a MultiBranch Pipeline Project or Organization Folder.
+3. Ensure each branch/repo provides the `ci-config.yaml` marker file expected by `pipelineTemplateHelloWorld`.
+4. Supply the `firstname`/`lastname` template parameters when the template is instantiated.
 
 ## Troubleshooting
 
-- If the shared library fails to load, verify the repository URL and the `SHARED_LIB_TAG` value.
-- If the Kubernetes agent does not start, check the pod template YAML and ensure the Kubernetes plugin is installed and configured correctly.
-
-## Contributing
-
-Feel free to submit issues or pull requests to improve this pipeline setup.
-
-## License
-
-This project is licensed under the MIT License.
-
-
+- If the Shared Library fails to load, verify `SHAREDLIB_GIT_SERVER` / `SHAREDLIB_GIT_ORG` / `SHAREDLIB_GIT_REPO`, and that `SHAREDLIB_GIT_CREDENTIALS` has access to the repo.
+- If `pipelineTemplateHelloWorld` fails, check that `ci-config.yaml` exists in the branch/repo and matches what the Shared Library expects.
