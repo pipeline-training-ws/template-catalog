@@ -12,9 +12,10 @@ This repository contains **CloudBees CI Pipeline Templates**, intended for reuse
 - Provide an opinionated CI pipeline structure driven by reusable templates and marker files (see diagram below)
 - Simplify pipeline adoption with minimal external dependencies — a Jenkins Shared Library plus a Pipeline Template Catalog
 - Keep templates thin: the Jenkinsfile in each template mostly loads a Shared Library and delegates the actual pipeline logic to it
+
 * Governance focus: *Centralized governance and lifecycle control for pipelines and Jenkinsfile templates*
-* Developer-friendly: *Shared, centrally managed pipeline templates for consistent Jenkinsfile design*
-* Ops/Enterprise: *Enterprise-wide standardization and centralized control of pipeline definitions and templates*
+- Developer-friendly: *Shared, centrally managed pipeline templates for consistent Jenkinsfile design*
+- Ops/Enterprise: *Enterprise-wide standardization and centralized control of pipeline definitions and templates*
 
 > For a fuller real-world example (Spring Boot app + custom marker file + Docker build), see the external reference implementation at [cb-ci-templates/ci-templates](https://github.com/cb-ci-templates/ci-templates) — it is not part of this repository.
 
@@ -118,6 +119,7 @@ strategy:
 - 📘 [CloudBees CI Pipeline Best Practices](https://docs.cloudbees.com/docs/cloudbees-ci/latest/pipelines/pipeline-best-practices)
 - 🎥 [Scripted vs. Declarative Pipelines – YouTube](https://www.youtube.com/watch?v=GJBlskiaRrI=)
 - 🧠 [Scripted vs. Declarative - Blog](https://e.printstacktrace.blog/jenkins-scripted-pipeline-vs-declarative-pipeline-the-4-practical-differences/)
+- 🎥 [Pipeline Templates with Shared Libraries](https://www.jenkins.io/blog/2017/10/02/pipeline-templates-with-shared-libraries/)
 
 ### Multibranch Pipelines
 
