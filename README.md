@@ -37,17 +37,17 @@ flowchart LR
 | Template                                                     | Description                                                                                                                                                                                          |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [`0-helloWorld`](templates/0-helloWorld)                     | Loads a Shared Library and runs on a Kubernetes agent. Executes custom `helloWorld` steps across two explicit stages (`Stage1`, `Stage2`) inside the `maven` container.                              |
-| [`1-helloWorld-MultiBranch`](templates/1-helloWorld-MultiBranch) | Fully externalized pipeline: the Jenkinsfile only loads the Shared Library and delegates to the `pipelineTemplateHelloWorld('ci-config.yaml')` global step, intended for MultiBranch / marker-file use. |
+| [`1-helloWorld-MB`](templates/1-helloWorld-MB) | Fully externalized pipeline: the Jenkinsfile only loads the Shared Library and delegates to the `pipelineTemplateHelloWorld('ci-config.yaml')` global step. `template.yaml` sets `templateType: MULTIBRANCH`, intended for MultiBranch / marker-file use. |
 
-Both templates declare the same `firstname` and `lastname` parameters in their `template.yaml`.
+`0-helloWorld` declares `firstname`/`lastname` parameters; `1-helloWorld-MB` instead declares `repoName`, `organisation`, and `githubToken` parameters that drive its MultiBranch GitHub branch source — see each template's own `template.yaml` and README for details.
 
 ---
 
 ## ⚡ Quick Start
 
 1. Register this repository as a [Pipeline Template Catalog](https://docs.cloudbees.com/docs/cloudbees-ci/latest/pipeline-templates-user-guide/) in CloudBees CI, pointing at [`catalog.yaml`](catalog.yaml).
-2. Reference a template (e.g. `0-helloWorld` or `1-helloWorld-MultiBranch`) from a MultiBranch Pipeline, Organization Folder, or marker file.
-3. Supply the required template parameters (`firstname`, `lastname`) when the template is instantiated.
+2. Reference a template (e.g. `0-helloWorld` or `1-helloWorld-MB`) from a MultiBranch Pipeline, Organization Folder, or marker file.
+3. Supply the required template parameters when the template is instantiated (`firstname`/`lastname` for `0-helloWorld`; `repoName`/`organisation`/`githubToken` for `1-helloWorld-MB`).
 
 ---
 
@@ -66,10 +66,10 @@ This repository follows the recommended layout for Pipeline Template Catalogs. T
     │   ├── Jenkinsfile              # Main pipeline file
     │   ├── README.md
     │   └── template.yaml            # Template descriptor (parameters)
-    └── 1-helloWorld-MultiBranch/
+    └── 1-helloWorld-MB/
         ├── Jenkinsfile
         ├── README.md
-        └── template.yaml
+        └── template.yaml            # templateType: MULTIBRANCH
 ```
 
 ---
@@ -80,7 +80,7 @@ Many jobs (or repos) can reuse the same template — a marker file in each job/r
 
 ```mermaid
 graph LR
-    JobA["Job / Repo A\nci-config.yaml"] --> TPL["Pipeline Template\n1-helloWorld-MultiBranch"]
+    JobA["Job / Repo A\nci-config.yaml"] --> TPL["Pipeline Template\n1-helloWorld-MB"]
     JobB["Job / Repo B\nci-config.yaml"] --> TPL
     JobC["Job / Repo C\nci-config.yaml"] --> TPL
     TPL --> SL["Shared Library"]

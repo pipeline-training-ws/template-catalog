@@ -49,19 +49,22 @@ pipelineTemplateHelloWorld('ci-config.yaml')
 
 ## Template Parameters
 
-Declared in [`template.yaml`](template.yaml):
+Declared in [`template.yaml`](template.yaml). This template has `templateType: MULTIBRANCH` and configures the MultiBranch project's GitHub branch source directly from its parameters:
 
-| Parameter   | Display name    |
-| ----------- | --------------- |
-| `firstname` | your firstname  |
-| `lastname`  | your lastname   |
+| Parameter     | Type        | Default                | Display name        |
+| ------------- | ----------- | ----------------------- | -------------------- |
+| `repoName`    | `string`      | `sample-app-helloWorld` | Git Repository       |
+| `organisation`| `string`      | `pipeline-training-ws`  | GH Organisation       |
+| `githubToken` | `CREDENTIALS` | `gh-app`                | GitHubUserToken       |
+
+These feed the `multibranch.branchSource.github` block (`repoOwner`, `repository`, `credentialsId`) and the `markerFile: ci-config.yaml` setting — see [`template.yaml`](template.yaml) and the [CloudBees docs on MultiBranch template parameters](https://docs.cloudbees.com/docs/admin-resources/latest/pipeline-templates-user-guide/managing-multibranch-pipeline-options#_example).
 
 ## Running the Pipeline
 
 1. Register this template in a Pipeline Template Catalog (see the [top-level README](../../README.md)).
 2. Reference the template from a MultiBranch Pipeline Project or Organization Folder.
 3. Ensure each branch/repo provides the `ci-config.yaml` marker file expected by `pipelineTemplateHelloWorld`.
-4. Supply the `firstname`/`lastname` template parameters when the template is instantiated.
+4. Supply the `repoName`, `organisation`, and `githubToken` template parameters when the template is instantiated.
 
 ## Troubleshooting
 
