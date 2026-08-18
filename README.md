@@ -13,11 +13,10 @@ This repository contains **CloudBees CI Pipeline Templates**, intended for reuse
 - Simplify pipeline adoption with minimal external dependencies — a Jenkins Shared Library plus a Pipeline Template Catalog
 - Keep templates thin: the Jenkinsfile in each template mostly loads a Shared Library and delegates the actual pipeline logic to it
 
-* Governance focus: *Centralized governance and lifecycle control for pipelines and Jenkinsfile templates*
+- Governance focus: *Centralized governance and lifecycle control for pipelines and Jenkinsfile templates*
+
 - Developer-friendly: *Shared, centrally managed pipeline templates for consistent Jenkinsfile design*
 - Ops/Enterprise: *Enterprise-wide standardization and centralized control of pipeline definitions and templates*
-
-> For a fuller real-world example (Spring Boot app + custom marker file + Docker build), see the external reference implementation at [cb-ci-templates/ci-templates](https://github.com/cb-ci-templates/ci-templates) — it is not part of this repository.
 
 ### Pipeline Template Catalog Design
 
